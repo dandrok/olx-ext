@@ -1,0 +1,71 @@
+console.log("hello from olx-ext!");
+
+const STORAGE_KEY = "olx-ext";
+
+const showOfferBack = (element, id) => {
+  const currentHidden = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  element.style.backgroundColor = "red";
+  element.textContent = "hide offer";
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(currentHidden.filter((hidden) => hidden !== id))
+  );
+  document.getElementById(id).style.display = "block";
+};
+
+const saveHidden = (id) => {
+  const el = document.getElementById(`offer-${id}`);
+  const storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+  if (storage.includes(id)) {
+    showOfferBack(el, id);
+  } else {
+    const current = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...current, id]));
+    document.getElementById(id).style.display = "none";
+    el.style.backgroundColor = "green";
+    el.textContent = "show offer";
+  }
+};
+
+const addHideButtons = () => {
+  const currentHidden = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  const allOffers = document.querySelectorAll('[data-testid="l-card"]');
+
+  for (const offer of allOffers) {
+    if (offer.dataset.hasButton) continue;
+    const style = window.getComputedStyle(offer);
+    if (style.display === "none") continue; // skip hidden offers
+
+    const button = document.createElement("button");
+    button.textContent = "hide offer";
+    button.style.cssText =
+      "z-index:505;position: relative; padding:1em;background:red;";
+
+    if (currentHidden.includes(offer.id)) {
+      document.getElementById(offer.id).style.display = "none";
+      button.style.backgroundColor = "green";
+      button.textContent = "show offer";
+    }
+
+    button.setAttribute("type", "button");
+    button.setAttribute("id", `offer-${offer.id}`);
+    offer.insertAdjacentElement("afterend", button);
+    button.addEventListener("click", () => saveHidden(offer.id));
+    offer.dataset.hasButton = "true";
+  }
+};
+
+let scheduled = false;
+const observer = new MutationObserver(() => {
+  if (!scheduled) {
+    scheduled = true;
+    setTimeout(() => {
+      addHideButtons();
+      scheduled = false;
+    }, 200);
+  }
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
