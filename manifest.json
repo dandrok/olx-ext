@@ -22,7 +22,8 @@
       "32": "images/32-s.png",
       "48": "images/48-s.png",
       "128": "images/128-s.png"
-    }
+    },
+    "default_popup": "popup.html"
   },
 
   "permissions": ["scripting", "tabs"]

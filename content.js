@@ -1,6 +1,38 @@
 console.log("hello from olx-ext!");
 
 const STORAGE_KEY = "olx-ext";
+const BTN_STORAGE_KEY = "customButtons";
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.action === "hide") {
+    console.log("Hiding elements…");
+    localStorage.setItem(BTN_STORAGE_KEY, "hide");
+    document.querySelectorAll(".custom-button").forEach((el) => {
+      el.style.display = "none";
+    });
+  }
+
+  if (msg.action === "show") {
+    console.log("Showing elements…");
+    localStorage.setItem(BTN_STORAGE_KEY, "show");
+    document.querySelectorAll(".custom-button").forEach((el) => {
+      el.style.display = "block";
+    });
+  }
+});
+
+const applyStorageValue = () => {
+  const currentValue = localStorage.getItem(BTN_STORAGE_KEY);
+  if (currentValue === "hide") {
+    document
+      .querySelectorAll(".custom-button")
+      .forEach((el) => (el.style.display = "none"));
+  } else if (currentValue === "show") {
+    document
+      .querySelectorAll(".custom-button")
+      .forEach((el) => (el.style.display = "block"));
+  }
+};
 
 const showOfferBack = (element, id) => {
   const currentHidden = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -50,6 +82,7 @@ const addHideButtons = () => {
     }
 
     button.setAttribute("type", "button");
+    button.setAttribute("class", "custom-button");
     button.setAttribute("id", `offer-${offer.id}`);
     offer.insertAdjacentElement("afterend", button);
     button.addEventListener("click", () => saveHidden(offer.id));
@@ -63,6 +96,7 @@ const observer = new MutationObserver(() => {
     scheduled = true;
     setTimeout(() => {
       addHideButtons();
+      applyStorageValue();
       scheduled = false;
     }, 200);
   }
