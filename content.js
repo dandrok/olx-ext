@@ -3,35 +3,47 @@ console.log("hello from olx-ext!");
 const STORAGE_KEY = "olx-ext";
 const BTN_STORAGE_KEY = "customButtons";
 
-chrome.runtime.onMessage.addListener((msg) => {
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === "hide") {
     console.log("Hiding elements…");
-    localStorage.setItem(BTN_STORAGE_KEY, "hide");
-    document.querySelectorAll(".custom-button").forEach((el) => {
-      el.style.display = "none";
+    chrome.storage.local.set({ [BTN_STORAGE_KEY]: "hide" }, () => {
+      document.querySelectorAll(".custom-button").forEach((el) => {
+        el.style.display = "none";
+      });
     });
   }
 
   if (msg.action === "show") {
     console.log("Showing elements…");
-    localStorage.setItem(BTN_STORAGE_KEY, "show");
-    document.querySelectorAll(".custom-button").forEach((el) => {
-      el.style.display = "block";
+    chrome.storage.local.set({ [BTN_STORAGE_KEY]: "show" }, () => {
+      document.querySelectorAll(".custom-button").forEach((el) => {
+        el.style.display = "block";
+      });
     });
+  }
+
+  if (msg.action === "getState") {
+    chrome.storage.local.get([BTN_STORAGE_KEY], (result) => {
+      const state = result[BTN_STORAGE_KEY] || "show";
+      sendResponse({ state });
+    });
+    return true;
   }
 });
 
 const applyStorageValue = () => {
-  const currentValue = localStorage.getItem(BTN_STORAGE_KEY);
-  if (currentValue === "hide") {
-    document
-      .querySelectorAll(".custom-button")
-      .forEach((el) => (el.style.display = "none"));
-  } else if (currentValue === "show") {
-    document
-      .querySelectorAll(".custom-button")
-      .forEach((el) => (el.style.display = "block"));
-  }
+  chrome.storage.local.get([BTN_STORAGE_KEY], (result) => {
+    const currentValue = result[BTN_STORAGE_KEY];
+    if (currentValue === "hide") {
+      document
+        .querySelectorAll(".custom-button")
+        .forEach((el) => (el.style.display = "none"));
+    } else if (currentValue === "show") {
+      document
+        .querySelectorAll(".custom-button")
+        .forEach((el) => (el.style.display = "block"));
+    }
+  });
 };
 
 const showOfferBack = (element, id) => {
